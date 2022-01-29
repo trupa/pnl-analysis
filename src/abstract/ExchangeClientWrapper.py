@@ -40,6 +40,10 @@ class ExchangeClientWrapper(ABC):
         pass
 
     @abstractmethod
+    def get_all_trades(self, start_date, end_date):
+        pass   
+    
+    @abstractmethod
     def format_data(self, df):
         pass
 
