@@ -59,7 +59,6 @@ def pnl_calculate(df,current_balance,meta):
     }
     
     return summary,df_summary_table,total_fees_usd,df_commissions
-    
 
 def calc_trading_fees(df):
     total_fees_usd = 0

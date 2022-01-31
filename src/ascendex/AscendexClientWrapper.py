@@ -127,7 +127,7 @@ class AscendexClientWrapper(ExchangeClientWrapper):
             df_trades.reset_index(drop=True, inplace=True)
             df_trades.sort_values(
                     'lastExecTime', ascending=False, ignore_index=True,inplace=True)
-            return self.format_data(df_trades)
+            return self.format_all_trades(df_trades)
         raise Exception(
             f"We couldn't fetch trades for this account")
 
@@ -150,3 +150,23 @@ class AscendexClientWrapper(ExchangeClientWrapper):
                        'commission': 'float64', 'commissionAssetUsdPrice': 'float64'})
         df['quoteQty'] = (df.price*df.qty).astype('float64')
         return df[['price', 'qty', 'quoteQty', 'commission', 'commissionAsset', 'side', 'commissionAssetUsdPrice', 'date_time']]
+
+    def format_all_trades(self, df):
+        df.loc[(df["side"] == 'Sell'), 'side'] = 'sell'
+        df.loc[(df["side"] == 'Buy'), 'side'] = 'buy'
+
+        df.rename(columns={
+            "lastExecTime": "date_time",
+            "orderQty": "qty",
+            "fee": "commission",
+            "feeAsset": "commissionAsset",
+        }, inplace=True)
+        df['date_time'] = pd.to_datetime(df["date_time"], unit="ms")
+        fee_currencies = df['commissionAsset'].unique()
+        for f in fee_currencies:
+            df.loc[(df["commissionAsset"] == f),
+                   'commissionAssetUsdPrice'] = self.usd_price_for(f)
+        df = df.astype({'price': 'float64', 'qty': 'float64',
+                       'commission': 'float64', 'commissionAssetUsdPrice': 'float64'})
+        df['quoteQty'] = (df.price*df.qty).astype('float64')
+        return df[['symbol','price', 'qty', 'quoteQty', 'commission', 'commissionAsset', 'side', 'commissionAssetUsdPrice', 'date_time']]

@@ -35,6 +35,17 @@ class ExchangeClientWrapper(ABC):
         quote_asset_price = df.at[quote_asset, "price"]
         return df, base_asset, quote_asset, base_asset_price, quote_asset_price
 
+    def get_current_asset_balances(self):
+        df_balances = self.get_all_asset_balances()
+        df = pd.DataFrame()
+        df["asset"] = df_balances["asset"]        
+        df["balance"] = df_balances["totalBalance"]
+        df["price"] = df["asset"].apply(lambda x: self.usd_price_for(x))
+        df["usd_value"] = df["price"] * df["balance"]
+        
+        return df
+
+
     @abstractmethod
     def get_trades(self, symbol, start_date, end_date):
         pass
